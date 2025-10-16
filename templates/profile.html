@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <!-- Thông tin cá nhân -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-circle me-2"></i>
+                        Thông tin cá nhân
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-user-circle fa-4x text-primary"></i>
+                    </div>
+                    <h5>{{ current_user.username }}</h5>
+                    <p class="text-muted">{{ current_user.email }}</p>
+                    <small class="text-muted">
+                        <i class="fas fa-calendar me-1"></i>
+                        Tham gia: {{ current_user.id }} ngày trước
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Thống kê -->
+            <div class="card mt-3 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Thống kê
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4 class="text-primary">{{ favorites_count }}</h4>
+                            <small class="text-muted">Laptop yêu thích</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success">{{ compare_count }}</h4>
+                            <small class="text-muted">Lần so sánh</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <!-- Laptop yêu thích -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-heart me-2"></i>
+                        Laptop yêu thích
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if favorites %}
+                    <div class="row">
+                        {% for favorite in favorites %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <img src="{{ favorite.laptop.image_url or 'https://via.placeholder.com/300x200?text=Laptop' }}" 
+                                     class="card-img-top" alt="{{ favorite.laptop.name }}" 
+                                     style="height: 150px; object-fit: cover;">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ favorite.laptop.name }}</h6>
+                                    <p class="card-text text-primary fw-bold">
+                                        {{ "{:,.0f}".format(favorite.laptop.price) }} VND
+                                    </p>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ url_for('laptop_detail', laptop_id=favorite.laptop.id) }}" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye me-1"></i>Xem
+                                        </a>
+                                        <form method="POST" action="{{ url_for('remove_favorite', laptop_id=favorite.laptop.id) }}" 
+                                              style="display: inline;">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-heart-broken me-1"></i>Bỏ thích
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-heart-broken fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Chưa có laptop yêu thích</h5>
+                        <p class="text-muted">Hãy khám phá và thêm laptop vào danh sách yêu thích!</p>
+                        <a href="{{ url_for('laptops') }}" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Khám phá laptop
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Hoạt động gần đây -->
+            <div class="card mt-3 shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        Hoạt động gần đây
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6>Đăng nhập thành công</h6>
+                                <small class="text-muted">Hôm nay</small>
+                            </div>
+                        </div>
+                        {% if favorites %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-danger"></div>
+                            <div class="timeline-content">
+                                <h6>Thêm {{ favorites|length }} laptop vào yêu thích</h6>
+                                <small class="text-muted">Gần đây</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -35px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -29px;
+    top: 17px;
+    width: 2px;
+    height: calc(100% + 10px);
+    background-color: #dee2e6;
+}
+
+.timeline-item:last-child::before {
+    display: none;
+}
+</style>
+{% endblock %} 

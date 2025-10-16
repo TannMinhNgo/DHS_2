@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Lỗi máy chủ - 500{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="error-template">
+                <h1 class="display-1 text-danger">500</h1>
+                <h2 class="mb-4">Lỗi máy chủ</h2>
+                <div class="error-details mb-4">
+                    <p class="text-muted">Xin lỗi, đã xảy ra lỗi bên trong máy chủ. Chúng tôi đang khắc phục sự cố này.</p>
+                </div>
+                <div class="error-actions">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-home"></i> Về trang chủ
+                    </a>
+                    <button onclick="history.back()" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-arrow-left"></i> Quay lại
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-template {
+    padding: 40px 15px;
+    text-align: center;
+}
+
+.error-actions .btn {
+    margin: 0 10px;
+}
+
+.display-1 {
+    font-size: 6rem;
+    font-weight: 300;
+    color: #dc3545;
+}
+</style>
+{% endblock %}

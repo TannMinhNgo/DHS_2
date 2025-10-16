@@ -1,0 +1,11 @@
+Flask
+Flask-SQLAlchemy
+Flask-Login
+Flask-WTF
+Flask-Limiter
+Werkzeug
+Pillow
+requests
+WTForms
+anthropic
+email-validator

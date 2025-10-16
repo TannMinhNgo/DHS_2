@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card app-card">
+                <div class="card-header app-card-header">
+                    <h4 class="mb-0">
+                        {% if laptop %}
+                            Sửa laptop: {{ laptop.name }}
+                        {% else %}
+                            Thêm laptop mới
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="row">
+                            <!-- Thông tin cơ bản -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Thông tin cơ bản</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Tên laptop *</label>
+                                    <input type="text" class="form-control" id="name" name="name" 
+                                           value="{{ laptop.name if laptop else '' }}" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="brand" class="form-label">Thương hiệu *</label>
+                                    <select class="form-select" id="brand" name="brand" required>
+                                        <option value="">Chọn thương hiệu</option>
+                                        <option value="ASUS" {{ 'selected' if laptop and laptop.brand == 'ASUS' else '' }}>ASUS</option>
+                                        <option value="HP" {{ 'selected' if laptop and laptop.brand == 'HP' else '' }}>HP</option>
+                                        <option value="Lenovo" {{ 'selected' if laptop and laptop.brand == 'Lenovo' else '' }}>Lenovo</option>
+                                        <option value="Dell" {{ 'selected' if laptop and laptop.brand == 'Dell' else '' }}>Dell</option>
+                                        <option value="Acer" {{ 'selected' if laptop and laptop.brand == 'Acer' else '' }}>Acer</option>
+                                        <option value="MSI" {{ 'selected' if laptop and laptop.brand == 'MSI' else '' }}>MSI</option>
+                                        <option value="Apple" {{ 'selected' if laptop and laptop.brand == 'Apple' else '' }}>Apple</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="category" class="form-label">Danh mục *</label>
+                                    <select class="form-select" id="category" name="category" required>
+                                        <option value="">Chọn danh mục</option>
+                                        <option value="office" {{ 'selected' if laptop and laptop.category == 'office' else '' }}>Văn phòng</option>
+                                        <option value="student" {{ 'selected' if laptop and laptop.category == 'student' else '' }}>Sinh viên</option>
+                                        <option value="gaming" {{ 'selected' if laptop and laptop.category == 'gaming' else '' }}>Gaming</option>
+                                        <option value="design" {{ 'selected' if laptop and laptop.category == 'design' else '' }}>Thiết kế</option>
+                                        <option value="dev" {{ 'selected' if laptop and laptop.category == 'dev' else '' }}>Lập trình</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="price" class="form-label">Giá (VND) *</label>
+                                    <input type="number" class="form-control" id="price" name="price" 
+                                           value="{{ laptop.price if laptop else '' }}" required>
+                                </div>
+                            </div>
+                            
+                            <!-- Thông số kỹ thuật -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Thông số kỹ thuật</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="cpu" class="form-label">CPU *</label>
+                                    <input type="text" class="form-control" id="cpu" name="cpu" 
+                                           value="{{ laptop.cpu if laptop else '' }}" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="ram_gb" class="form-label">RAM (GB) *</label>
+                                    <select class="form-select" id="ram_gb" name="ram_gb" required>
+                                        <option value="">Chọn RAM</option>
+                                        <option value="4" {{ 'selected' if laptop and laptop.ram_gb == 4 else '' }}>4GB</option>
+                                        <option value="8" {{ 'selected' if laptop and laptop.ram_gb == 8 else '' }}>8GB</option>
+                                        <option value="16" {{ 'selected' if laptop and laptop.ram_gb == 16 else '' }}>16GB</option>
+                                        <option value="32" {{ 'selected' if laptop and laptop.ram_gb == 32 else '' }}>32GB</option>
+                                        <option value="64" {{ 'selected' if laptop and laptop.ram_gb == 64 else '' }}>64GB</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="gpu" class="form-label">GPU</label>
+                                    <input type="text" class="form-control" id="gpu" name="gpu" 
+                                           value="{{ laptop.gpu if laptop else '' }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="storage" class="form-label">Lưu trữ *</label>
+                                    <input type="text" class="form-control" id="storage" name="storage" 
+                                           value="{{ laptop.storage if laptop else '' }}" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="screen" class="form-label">Màn hình *</label>
+                                    <input type="text" class="form-control" id="screen" name="screen" 
+                                           value="{{ laptop.screen if laptop else '' }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Thông tin pin -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5 class="mb-3">Thông tin pin</h5>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="battery_capacity" class="form-label">Dung lượng pin (Wh)</label>
+                                    <input type="number" class="form-control" id="battery_capacity" name="battery_capacity" 
+                                           value="{{ laptop.battery_capacity if laptop else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="battery_life_office" class="form-label">Thời gian văn phòng (phút)</label>
+                                    <input type="number" class="form-control" id="battery_life_office" name="battery_life_office" 
+                                           value="{{ laptop.battery_life_office if laptop else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="battery_life_gaming" class="form-label">Thời gian gaming (phút)</label>
+                                    <input type="number" class="form-control" id="battery_life_gaming" name="battery_life_gaming" 
+                                           value="{{ laptop.battery_life_gaming if laptop else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Điểm số benchmark -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5 class="mb-3">Điểm số benchmark</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>CPU (Geekbench 6)</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="cpu_single_core_plugged" class="form-label">Single Core (Cắm sạc)</label>
+                                            <input type="number" class="form-control" id="cpu_single_core_plugged" name="cpu_single_core_plugged" 
+                                                   value="{{ laptop.cpu_single_core_plugged if laptop else '' }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="cpu_single_core_battery" class="form-label">Single Core (Dùng pin)</label>
+                                            <input type="number" class="form-control" id="cpu_single_core_battery" name="cpu_single_core_battery" 
+                                                   value="{{ laptop.cpu_single_core_battery if laptop else '' }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="cpu_multi_core_plugged" class="form-label">Multi Core (Cắm sạc)</label>
+                                            <input type="number" class="form-control" id="cpu_multi_core_plugged" name="cpu_multi_core_plugged" 
+                                                   value="{{ laptop.cpu_multi_core_plugged if laptop else '' }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="cpu_multi_core_battery" class="form-label">Multi Core (Dùng pin)</label>
+                                            <input type="number" class="form-control" id="cpu_multi_core_battery" name="cpu_multi_core_battery" 
+                                                   value="{{ laptop.cpu_multi_core_battery if laptop else '' }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>GPU</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="gpu_score_plugged" class="form-label">Điểm GPU (Cắm sạc)</label>
+                                            <input type="number" class="form-control" id="gpu_score_plugged" name="gpu_score_plugged" 
+                                                   value="{{ laptop.gpu_score_plugged if laptop else '' }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="gpu_score_battery" class="form-label">Điểm GPU (Dùng pin)</label>
+                                            <input type="number" class="form-control" id="gpu_score_battery" name="gpu_score_battery" 
+                                                   value="{{ laptop.gpu_score_battery if laptop else '' }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Upload hình ảnh -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5 class="mb-3">🖼️ Hình ảnh</h5>
+                                <div class="mb-3">
+                                    <label for="image" class="form-label">Upload hình ảnh</label>
+                                    <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                                    <div class="form-text">Hỗ trợ: JPG, PNG, WebP. Kích thước tối đa: 5MB</div>
+                                </div>
+                                
+                                {% if laptop and laptop.image_url %}
+                                <div class="mb-3">
+                                    <label class="form-label">Hình ảnh hiện tại:</label>
+                                    <div>
+                                        <img src="{{ laptop.image_url }}" alt="{{ laptop.name }}" 
+                                             class="img-thumbnail" style="max-width: 200px; max-height: 150px;">
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Nút thao tác -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">Quay lại</a>
+                                    <div>
+                                        <button type="reset" class="btn btn-outline-secondary me-2">Làm mới</button>
+                                        <button type="submit" class="btn btn-primary">
+                                            {% if laptop %}Cập nhật{% else %}Thêm mới{% endif %}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Preview hình ảnh
+document.getElementById('image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+            alert('File quá lớn! Kích thước tối đa là 5MB.');
+            this.value = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // Có thể thêm preview ở đây nếu cần
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const price = document.getElementById('price').value;
+    if (price && price < 0) {
+        e.preventDefault();
+        alert('Giá không được âm!');
+        return false;
+    }
+});
+</script>
+{% endblock %} 

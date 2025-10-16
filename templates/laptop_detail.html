@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-5">
+    <img class="img-fluid rounded border" src="{{ item.image_url or 'https://via.placeholder.com/500x350?text=Laptop' }}" alt="{{ item.name }}">
+  </div>
+  <div class="col-md-7">
+    <div class="card app-card">
+      <div class="card-header app-card-header">
+        <h3 class="mb-0">{{ item.name }}</h3>
+      </div>
+      <div class="card-body">
+        <p class="text-muted">{{ item.brand }} • {{ item.category|upper }}</p>
+        <table class="table">
+          <tr><th>CPU</th><td>{{ item.cpu }}</td></tr>
+          <tr><th>GPU</th><td>{{ item.gpu or '—' }}</td></tr>
+          <tr><th>RAM</th><td>{{ item.ram_gb }} GB</td></tr>
+          <tr><th>Lưu trữ</th><td>{{ item.storage }}</td></tr>
+          <tr><th>Màn hình</th><td>{{ item.screen }}</td></tr>
+          <tr><th>Giá</th><td class="fw-bold">{{ "{:,.0f}".format(item.price) }} VND</td></tr>
+        </table>
+        {% if current_user.is_authenticated %}
+          {% if is_favorite %}
+            <form method="post" action="{{ url_for('remove_favorite', laptop_id=item.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button class="btn btn-danger">
+                <i class="fas fa-heart"></i> Đã yêu thích
+              </button>
+            </form>
+          {% else %}
+            <form method="post" action="{{ url_for('add_favorite', laptop_id=item.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button class="btn btn-success">
+                <i class="far fa-heart"></i> Thêm vào yêu thích
+              </button>
+            </form>
+          {% endif %}
+        {% else %}
+        <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Đăng nhập để lưu yêu thích</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

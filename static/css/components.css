@@ -1,0 +1,505 @@
+/* Component-specific CSS for better maintainability */
+
+/* Product Card Component */
+.product-card-component {
+  background: var(--gradient-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-card-component:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--primary-500);
+}
+
+.product-card-component .product-image {
+  position: relative;
+  overflow: hidden;
+  height: 250px;
+}
+
+.product-card-component .product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  transition: transform 0.3s ease;
+}
+
+.product-card-component:hover .product-image img {
+  transform: scale(1.05);
+}
+
+.product-card-component .product-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.product-card-component:hover .product-overlay {
+  opacity: 1;
+}
+
+.product-card-component .product-body {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-card-component .product-title {
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 1rem;
+  color: var(--text-strong);
+}
+
+.product-card-component .product-specs {
+  flex: 1;
+  margin-bottom: 1rem;
+}
+
+.product-card-component .spec-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.875rem;
+}
+
+.product-card-component .spec-item:last-child {
+  border-bottom: none;
+}
+
+.product-card-component .spec-label {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.product-card-component .spec-value {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+.product-card-component .product-price {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.product-card-component .price-amount {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--primary-600);
+}
+
+.product-card-component .product-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Feature Card Component */
+.feature-card-component {
+  background: white;
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+  height: 100%;
+  text-align: center;
+}
+
+.feature-card-component:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+}
+
+.feature-card-component .feature-icon {
+  font-size: 3rem;
+  color: var(--primary-600);
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.feature-card-component h5 {
+  margin-bottom: 1rem;
+  color: var(--text-strong);
+}
+
+.feature-card-component p {
+  color: var(--text-muted);
+  margin-bottom: 0;
+}
+
+/* Category Card Component */
+.category-card-component {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+  height: 100%;
+  cursor: pointer;
+}
+
+.category-card-component:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+}
+
+.category-card-component .category-header {
+  background: var(--gradient-primary);
+  color: white;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.category-card-component .category-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.category-card-component .category-body {
+  padding: 1.5rem;
+}
+
+.category-card-component .category-specs {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 1rem;
+}
+
+.category-card-component .category-specs li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.category-card-component .category-specs li:last-child {
+  border-bottom: none;
+}
+
+.category-card-component .category-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Brand Card Component */
+.brand-card-component {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 16px;
+  text-decoration: none;
+  color: var(--text-strong);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.brand-card-component:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-500);
+  color: var(--primary-600);
+  text-decoration: none;
+}
+
+.brand-card-component .brand-name {
+  font-weight: 600;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+/* Search Suggestion Component */
+.search-suggest-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border: none;
+  border-bottom: 1px solid var(--border-light);
+  transition: all 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.search-suggest-item:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(240, 147, 251, 0.05) 100%);
+  transform: translateX(4px);
+  text-decoration: none;
+  color: inherit;
+}
+
+.search-suggest-item:last-child {
+  border-bottom: none;
+}
+
+.search-suggest-item .suggest-image {
+  width: 48px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  margin-right: 0.75rem;
+}
+
+.search-suggest-item .suggest-content {
+  flex: 1;
+}
+
+.search-suggest-item .suggest-title {
+  font-weight: 600;
+  color: var(--text-strong);
+  margin-bottom: 0.25rem;
+}
+
+.search-suggest-item .suggest-price {
+  font-size: 0.875rem;
+  color: var(--primary-600);
+  font-weight: 500;
+}
+
+.search-suggest-item .suggest-arrow {
+  color: var(--text-muted);
+  font-weight: bold;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.search-suggest-item:hover .suggest-arrow {
+  opacity: 1;
+  transform: translateX(4px);
+}
+
+/* Button Component Variants */
+.btn-component-primary {
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-component-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  filter: brightness(1.05);
+  color: white;
+}
+
+.btn-component-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-component-primary:hover::before {
+  left: 100%;
+}
+
+.btn-component-outline {
+  color: var(--primary-600);
+  border: 2px solid var(--primary-600);
+  background: transparent;
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-component-outline:hover {
+  background: var(--gradient-primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Mobile-First Responsive Design */
+@media (max-width: 768px) {
+  .product-card-component .product-image {
+    height: 200px;
+  }
+  
+  .product-card-component .product-body {
+    padding: 1rem;
+  }
+  
+  .product-card-component .product-title {
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+  
+  .product-card-component .spec-item {
+    padding: 0.5rem 0;
+    font-size: 0.8rem;
+  }
+  
+  .product-card-component .price-amount {
+    font-size: 1.1rem;
+  }
+  
+  .feature-card-component,
+  .category-card-component {
+    margin-bottom: 1rem;
+  }
+  
+  .feature-card-component {
+    padding: 1.5rem;
+  }
+  
+  .feature-card-component .feature-icon {
+    font-size: 2.5rem;
+  }
+  
+  .category-card-component .category-icon {
+    font-size: 2rem;
+  }
+  
+  .brand-card-component {
+    padding: 1rem;
+    min-height: 80px;
+  }
+  
+  .brand-card-component .brand-name {
+    font-size: 1rem;
+  }
+  
+  /* Touch-friendly search suggestions */
+  .search-suggest-item {
+    padding: 1rem;
+    min-height: 60px;
+  }
+  
+  .search-suggest-item .suggest-image {
+    width: 40px;
+    height: 28px;
+  }
+  
+  .search-suggest-item .suggest-title {
+    font-size: 0.9rem;
+  }
+  
+  .search-suggest-item .suggest-price {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .product-card-component .product-image {
+    height: 180px;
+  }
+  
+  .product-card-component .product-body {
+    padding: 0.75rem;
+  }
+  
+  .product-card-component .spec-item {
+    font-size: 0.75rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .feature-card-component {
+    padding: 1rem;
+  }
+  
+  .feature-card-component .feature-icon {
+    font-size: 2rem;
+  }
+  
+  .category-card-component .category-header {
+    padding: 1rem;
+  }
+  
+  .category-card-component .category-body {
+    padding: 1rem;
+  }
+  
+  .category-card-component .category-icon {
+    font-size: 1.75rem;
+  }
+  
+  .brand-card-component {
+    padding: 0.75rem;
+    min-height: 70px;
+  }
+  
+  .brand-card-component .brand-name {
+    font-size: 0.9rem;
+  }
+  
+  /* Very small screens optimization */
+  .search-suggest-item {
+    padding: 0.75rem;
+    min-height: 50px;
+  }
+  
+  .search-suggest-item .suggest-content {
+    overflow: hidden;
+  }
+  
+  .search-suggest-item .suggest-title {
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* Progressive Enhancement for larger screens */
+@media (min-width: 992px) {
+  .product-card-component:hover {
+    transform: translateY(-12px) scale(1.02);
+  }
+  
+  .feature-card-component:hover,
+  .category-card-component:hover,
+  .brand-card-component:hover {
+    transform: translateY(-8px);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .product-card-component,
+  .feature-card-component,
+  .category-card-component,
+  .brand-card-component {
+    background: #2d3748;
+    border-color: #4a5568;
+    color: #e2e8f0;
+  }
+  
+  .search-suggest-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}

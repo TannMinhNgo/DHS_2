@@ -1,0 +1,2205 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Laptop Recommender{% endblock %}</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/components.css') }}" rel="stylesheet">
+  
+  <!-- Meta tags for better SEO and social sharing -->
+  <meta name="description" content="Hệ thống gợi ý laptop thông minh - Tìm laptop phù hợp với nhu cầu và ngân sách của bạn">
+  <meta name="keywords" content="laptop, gợi ý, so sánh, mua laptop, laptop gaming, laptop văn phòng">
+  <meta name="author" content="Laptop Recommender">
+  
+  <!-- Open Graph tags -->
+  <meta property="og:title" content="Laptop Recommender">
+  <meta property="og:description" content="Hệ thống gợi ý laptop thông minh">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ request.url }}">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+  
+  <!-- CSRF Token -->
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+<body class="app-gradient">
+<!-- Navbar với scroll effect -->
+<nav class="navbar navbar-expand-lg app-navbar border-bottom mb-3" id="mainNavbar">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">
+      <i class="fas fa-laptop text-gradient"></i> Laptop Recommender
+    </a>
+    
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link {{ 'active' if request.endpoint == 'laptops' }}" href="{{ url_for('laptops') }}">
+            <i class="fas fa-laptop nav-icon"></i> Danh sách
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ 'active' if request.endpoint == 'compare' }}" href="{{ url_for('compare') }}">
+            <i class="fas fa-balance-scale nav-icon"></i> So sánh
+          </a>
+        </li>
+        {% if current_user.is_authenticated %}
+        <li class="nav-item">
+          <a class="nav-link {{ 'active' if request.endpoint == 'favorites' }}" href="{{ url_for('favorites') }}">
+            <i class="fas fa-heart nav-icon"></i> Yêu thích
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+      
+      <!-- Advanced Search form -->
+      <form class="d-flex position-relative search-form" role="search" action="{{ url_for('laptops') }}" autocomplete="off">
+        <label for="navbarSearch" class="visually-hidden">Tìm kiếm laptop</label>
+        <div class="search-input-wrapper position-relative">
+          <input class="form-control search-input focus-ring" 
+                 id="navbarSearch" 
+                 type="text" 
+                 placeholder="Tìm laptop, thương hiệu, hoặc mô tả..." 
+                 name="q" 
+                 aria-label="Tìm kiếm laptop thông minh"
+                 aria-describedby="search-help search-examples"
+                 autocomplete="off"
+                 spellcheck="false">
+          <button type="button" class="search-clear-btn" id="searchClearBtn" style="display: none;" aria-label="Xóa tìm kiếm">
+            <i class="fas fa-times" aria-hidden="true"></i>
+          </button>
+        </div>
+        <button class="btn btn-primary search-btn focus-ring" 
+                type="submit" 
+                aria-label="Thực hiện tìm kiếm">
+          <i class="fas fa-search search-icon" aria-hidden="true"></i>
+        </button>
+        <div id="searchSuggest" 
+             class="search-suggest-container" 
+             style="display:none;"
+             role="listbox"
+             aria-label="Gợi ý tìm kiếm thông minh">
+        </div>
+        <div id="search-help" class="visually-hidden">
+          Nhập tên laptop, thương hiệu, hoặc mô tả nhu cầu để tìm kiếm
+        </div>
+        <div id="search-examples" class="visually-hidden">
+          Ví dụ: "laptop gaming RTX 4060", "laptop sinh viên dưới 15 triệu", "MacBook Pro M3"
+        </div>
+      </form>
+      
+      <!-- Modern User Menu -->
+      <ul class="navbar-nav ms-3">
+        {% if current_user.is_authenticated %}
+        <li class="nav-item">
+          <div class="user-menu-wrapper">
+            <button class="user-menu-trigger" id="userMenuBtn" aria-expanded="false" aria-haspopup="true">
+              <div class="user-avatar">
+                {{ current_user.username[0].upper() }}
+              </div>
+              <span class="user-name">{{ current_user.username }}</span>
+              <i class="fas fa-chevron-down" style="font-size: 12px; transition: transform 0.3s ease;"></i>
+            </button>
+            <div class="user-menu-dropdown" id="userMenuDropdown" role="menu" aria-labelledby="userMenuBtn">
+              <a href="{{ url_for('profile') }}" class="user-menu-item" role="menuitem">
+                <i class="fas fa-user user-menu-item-icon"></i>
+                <span>Hồ sơ cá nhân</span>
+              </a>
+              
+              <a href="{{ url_for('favorites') }}" class="user-menu-item" role="menuitem">
+                <i class="fas fa-heart user-menu-item-icon"></i>
+                <span>Danh sách yêu thích</span>
+              </a>
+              
+              {% if current_user.role == 'admin' %}
+              <div class="user-menu-divider"></div>
+              <a href="{{ url_for('admin_dashboard') }}" class="user-menu-item" role="menuitem">
+                <i class="fas fa-cog user-menu-item-icon"></i>
+                <span>Quản trị hệ thống</span>
+              </a>
+              {% endif %}
+              
+              <div class="user-menu-footer">
+                <a href="{{ url_for('logout') }}" class="user-menu-logout" role="menuitem">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <span>Đăng xuất</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </li>
+        {% else %}
+        <li class="nav-item">
+          <a class="nav-link btn btn-outline-primary btn-sm me-2 focus-ring" 
+             href="{{ url_for('login') }}"
+             aria-label="Đăng nhập vào tài khoản">
+            <i class="fas fa-key btn-icon" aria-hidden="true"></i>Đăng nhập
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link btn btn-primary btn-sm focus-ring" 
+             href="{{ url_for('register') }}"
+             aria-label="Tạo tài khoản mới">
+            <i class="fas fa-user-plus btn-icon" aria-hidden="true"></i>Đăng ký
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Main content container -->
+<div class="container container-narrow">
+  <!-- Flash messages với animation đẹp -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+          <div class="toast-notification toast-{{ category }} animate-slide-in-right" role="alert">
+            <div class="toast-content">
+              <div class="toast-icon">
+                {% if category == 'success' %}
+                  <i class="fas fa-check-circle"></i>
+                {% elif category == 'danger' %}
+                  <i class="fas fa-exclamation-circle"></i>
+                {% elif category == 'warning' %}
+                  <i class="fas fa-exclamation-triangle"></i>
+                {% else %}
+                  <i class="fas fa-info-circle"></i>
+                {% endif %}
+              </div>
+              <div class="toast-body">
+                <div class="toast-title">
+                  {% if category == 'success' %}Thành công!
+                  {% elif category == 'danger' %}Lỗi!
+                  {% elif category == 'warning' %}Cảnh báo!
+                  {% else %}Thông báo
+                  {% endif %}
+                </div>
+                <div class="toast-message">{{ message }}</div>
+              </div>
+              <button type="button" class="toast-close" onclick="this.parentElement.parentElement.remove()">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div class="toast-progress"></div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  
+  <!-- Main content -->
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<!-- Footer -->
+<footer class="footer mt-5 py-4">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6">
+        <h6 class="text-gradient fw-bold mb-3">Laptop Recommender</h6>
+        <p class="text-muted mb-0">Hệ thống gợi ý laptop thông minh giúp bạn tìm được sản phẩm phù hợp nhất.</p>
+      </div>
+              <div class="col-md-6 text-md-end">
+          <p class="text-muted mb-0">
+           2025 Laptop Recommender. Được phát triển với ❤️
+          </p>
+          <p class="text-muted mb-0">
+           Web được xây dựng với mục đích học tập ❤️
+          </p>
+        </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Back to top button -->
+<button id="backToTop" 
+        class="back-to-top focus-ring" 
+        aria-label="Cuộn lên đầu trang"
+        title="Lên đầu trang">
+  <i class="fas fa-chevron-up" aria-hidden="true"></i>
+</button>
+
+<!-- AI Chatbot Widget -->
+<div class="chatbot-widget" id="chatbotWidget">
+  <!-- Chat Toggle Button -->
+  <button class="chat-toggle-btn focus-ring" 
+          id="chatToggleBtn" 
+          onclick="toggleChat()"
+          aria-label="Mở chat tư vấn AI"
+          aria-expanded="false"
+          aria-controls="chatWindow">
+    <i class="fas fa-robot" aria-hidden="true"></i>
+    <span class="chat-badge" 
+          id="chatBadge" 
+          style="display: none;"
+          aria-label="Có tin nhắn mới">1</span>
+  </button>
+  
+  <!-- Chat Window -->
+  <div class="chat-window" 
+       id="chatWindow" 
+       style="display: none;"
+       role="dialog"
+       aria-labelledby="chat-title"
+       aria-modal="false">
+    <div class="chat-header">
+      <div class="chat-title" id="chat-title">
+        <i class="fas fa-robot me-2" aria-hidden="true"></i>
+        <span>AI Tư vấn Laptop</span>
+      </div>
+      <div class="chat-header-actions">
+        <button class="chat-clear-btn focus-ring" 
+                onclick="clearChat()" 
+                aria-label="Xóa lịch sử trò chuyện"
+                title="Xóa lịch sử">
+          <i class="fas fa-trash-alt" aria-hidden="true"></i>
+        </button>
+        <button class="chat-close-btn focus-ring" 
+                onclick="toggleChat()"
+                aria-label="Đóng chat">
+          <i class="fas fa-times" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+    
+    <div class="chat-messages" 
+         id="chatMessages"
+         role="log"
+         aria-label="Lịch sử trò chuyện"
+         aria-live="polite">
+      <div class="message bot-message">
+        <div class="message-avatar">
+          <i class="fas fa-robot" aria-hidden="true"></i>
+        </div>
+        <div class="message-content">
+          <div class="message-text">**Xin chào!** Tôi là AI tư vấn laptop thông minh.
+
+**Tôi có thể giúp bạn:**
+• Tư vấn laptop phù hợp với nhu cầu và ngân sách
+• So sánh các mẫu laptop khác nhau
+• Giải thích thông số kỹ thuật
+• Tìm laptop cụ thể từ database
+
+**Bạn cần tư vấn gì?**</div>
+          <div class="message-time">Vừa xong</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="chat-input-container">
+      <div class="chat-input-wrapper">
+        <label for="chatInput" class="visually-hidden">Nhập câu hỏi của bạn</label>
+        <textarea class="chat-input focus-ring" 
+                  id="chatInput" 
+                  placeholder="Nhập câu hỏi của bạn..." 
+                  maxlength="500" 
+                  rows="1"
+                  aria-label="Nhập tin nhắn"
+                  aria-describedby="chat-input-help"></textarea>
+        <button class="chat-send-btn focus-ring" 
+                id="chatSendBtn" 
+                onclick="sendMessage()"
+                aria-label="Gửi tin nhắn">
+          <i class="fas fa-paper-plane" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div id="chat-input-help" class="visually-hidden">
+        Nhập câu hỏi về laptop và nhấn Enter hoặc nút gửi
+      </div>
+    </div>
+  </div>
+
+  <!-- Page transition overlay -->
+  <div id="pageTransition" class="page-transition" aria-hidden="true"></div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+<!-- Custom JavaScript -->
+<script>
+// Navbar scroll effect
+window.addEventListener('scroll', function() {
+  const navbar = document.getElementById('mainNavbar');
+  if (window.scrollY > 50) {
+    navbar.classList.add('scrolled');
+  } else {
+    navbar.classList.remove('scrolled');
+  }
+});
+
+// Back to top button
+const backToTopBtn = document.getElementById('backToTop');
+
+window.addEventListener('scroll', function() {
+  if (window.scrollY > 300) {
+    backToTopBtn.classList.add('show');
+  } else {
+    backToTopBtn.classList.remove('show');
+  }
+});
+
+backToTopBtn.addEventListener('click', function() {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+});
+
+// Auto-hide toast notifications
+document.addEventListener('DOMContentLoaded', function() {
+  const toasts = document.querySelectorAll('.toast-notification');
+  toasts.forEach(function(toast) {
+    // Auto-hide after 4 seconds
+    setTimeout(function() {
+      toast.style.animation = 'slideOutRight 0.3s ease-in forwards';
+      setTimeout(function() {
+        toast.remove();
+      }, 300);
+    }, 4000);
+    
+    // Add click to close
+    const closeBtn = toast.querySelector('.toast-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function() {
+        toast.style.animation = 'slideOutRight 0.3s ease-in forwards';
+        setTimeout(function() {
+          toast.remove();
+        }, 300);
+      });
+    }
+  });
+});
+
+// Function to update back to top button position for compare button
+function updateBackToTopPosition() {
+  const compareBtn = document.getElementById('showCompareBtn');
+  if (compareBtn && compareBtn.style.display !== 'none') {
+    backToTopBtn.classList.add('with-compare');
+    const chatbot = document.getElementById('chatbotWidget');
+    if (chatbot) chatbot.classList.add('with-compare');
+  } else {
+    backToTopBtn.classList.remove('with-compare');
+    const chatbot = document.getElementById('chatbotWidget');
+    if (chatbot) chatbot.classList.remove('with-compare');
+  }
+  // Note: Back to top button is now positioned next to chatbot, no position adjustment needed
+}
+
+// Observer to watch for compare button changes
+const compareButtonObserver = new MutationObserver(function(mutations) {
+  mutations.forEach(function(mutation) {
+    if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+      updateBackToTopPosition();
+    }
+  });
+});
+
+// Start observing the compare button if it exists
+document.addEventListener('DOMContentLoaded', function() {
+  const compareBtn = document.getElementById('showCompareBtn');
+  if (compareBtn) {
+    compareButtonObserver.observe(compareBtn, {
+      attributes: true,
+      attributeFilter: ['style']
+    });
+  }
+});
+
+// Advanced Search functionality với Natural Language Processing
+(function(){
+  const input = document.getElementById('navbarSearch');
+  const container = document.getElementById('searchSuggest');
+  const clearBtn = document.getElementById('searchClearBtn');
+  if (!input || !container) return;
+
+  // Move suggest container to body to avoid parent stacking/overflow contexts
+  try {
+    if (container.parentElement !== document.body) {
+      document.body.appendChild(container);
+    }
+  } catch(e) {}
+
+  let abortCtrl = null;
+  let hideTimer = null;
+  let searchHistory = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+  let popularSearches = [
+    'laptop gaming RTX 4060',
+    'laptop sinh viên dưới 15 triệu',
+    'MacBook Pro M3',
+    'laptop văn phòng',
+    'laptop thiết kế đồ họa'
+  ];
+
+  function formatPrice(v){
+    try { 
+      return new Intl.NumberFormat('vi-VN').format(v) + ' VND'; 
+    } catch(e) { 
+      return v + ' VND'; 
+    }
+  }
+
+  function escapeRegExp(s){ 
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
+  }
+  
+  function highlight(text, q){
+    if (!q) return text;
+    try {
+      const re = new RegExp(escapeRegExp(q), 'ig');
+      return text.replace(re, (m) => `<mark class="px-1 py-0">${m}</mark>`);
+    } catch(e){ 
+      return text; 
+    }
+  }
+
+  function parseNaturalLanguage(query) {
+    const lowerQuery = query.toLowerCase();
+    const patterns = {
+      budget: /dưới\s+(\d+)\s*(triệu|tr|k|nghìn)/,
+      gaming: /gaming|chơi\s+game|rtx|gtx|rx/,
+      student: /sinh\s+viên|học\s+sinh|student/,
+      office: /văn\s+phòng|office|làm\s+việc/,
+      design: /thiết\s+kế|design|đồ\s+họa|photoshop/,
+      brand: /asus|dell|hp|lenovo|acer|msi|macbook|apple/
+    };
+    
+    const extracted = {};
+    for (const [key, pattern] of Object.entries(patterns)) {
+      const match = lowerQuery.match(pattern);
+      if (match) {
+        extracted[key] = match[1] || match[0];
+      }
+    }
+    return extracted;
+  }
+  
+  function render(items, query = ''){
+    const rect = input.getBoundingClientRect();
+    container.style.left = rect.left + 'px';
+    container.style.top = (rect.bottom + 5) + 'px';
+    container.style.width = rect.width + 'px';
+    container.style.zIndex = '2147483647';
+    container.style.position = 'fixed';
+    container.style.pointerEvents = 'auto';
+    container.style.maxWidth = rect.width + 'px';
+    container.style.backgroundColor = 'white';
+    container.style.boxShadow = '0 20px 40px rgba(0,0,0,0.3)';
+    container.style.border = '2px solid #667eea';
+    container.style.borderRadius = '16px';
+    container.style.overflow = 'hidden';
+    container.style.transform = 'translateZ(0)';
+    container.style.isolation = 'isolate';
+    
+    setTimeout(() => {
+      container.style.zIndex = '2147483647';
+      container.style.position = 'fixed';
+      container.style.transform = 'translateZ(0)';
+      container.style.isolation = 'isolate';
+      container.style.willChange = 'transform, top, left';
+    }, 0);
+    
+    if (!items || items.length === 0){
+      // Show search suggestions when no results
+      const suggestions = getSearchSuggestions(query);
+      container.innerHTML = `
+        <div class="card app-card mt-1">
+          <div class="p-3">
+            <div class="text-muted text-center mb-3">
+              <i class="fas fa-search mb-2" style="font-size: 1.5rem;"></i>
+              <div>Không có sản phẩm phù hợp</div>
+            </div>
+            ${suggestions}
+          </div>
+        </div>`;
+      container.style.display = 'block';
+      return;
+    }
+    
+    const html = `
+      <div class="card app-card mt-1" style="max-height: 400px; overflow:auto;">
+        <div class="list-group list-group-flush">
+          ${items.map(it => `
+            <a href="/laptop/${it.id}" class="list-group-item list-group-item-action d-flex align-items-center search-item">
+              <img src="${it.image_url || '/static/images/R.webp'}" alt="${it.name}" 
+                   style="width:48px;height:32px;object-fit:cover;" class="me-2 rounded border">
+              <div class="flex-grow-1">
+                <div class="fw-semibold search-item-title">${highlight(it.name, query)}</div>
+                <div class="small text-muted search-item-price">${formatPrice(it.price)}</div>
+                <div class="small text-muted">${it.brand} • ${it.cpu}</div>
+              </div>
+              <span class="search-item-arrow">→</span>
+            </a>
+          `).join('')}
+        </div>
+      </div>`;
+    container.innerHTML = html;
+    container.style.display = 'block';
+  }
+
+  function getSearchSuggestions(query) {
+    const filteredHistory = searchHistory.filter(h => h.toLowerCase().includes(query.toLowerCase()));
+    const filteredPopular = popularSearches.filter(p => p.toLowerCase().includes(query.toLowerCase()));
+    
+    let html = '';
+    if (filteredHistory.length > 0) {
+      html += '<div class="mb-2"><small class="text-muted fw-bold">Tìm kiếm gần đây:</small></div>';
+      html += filteredHistory.slice(0, 3).map(h => `
+        <div class="search-suggestion-item" data-query="${h}">
+          <i class="fas fa-history me-2 text-muted"></i>${h}
+        </div>
+      `).join('');
+    }
+    
+    if (filteredPopular.length > 0) {
+      html += '<div class="mb-2 mt-3"><small class="text-muted fw-bold">Tìm kiếm phổ biến:</small></div>';
+      html += filteredPopular.slice(0, 3).map(p => `
+        <div class="search-suggestion-item" data-query="${p}">
+          <i class="fas fa-fire me-2 text-muted"></i>${p}
+        </div>
+      `).join('');
+    }
+    
+    return html;
+  }
+
+  async function fetchSuggest(q){
+    if (abortCtrl) abortCtrl.abort();
+    abortCtrl = new AbortController();
+    
+    const timestamp = new Date().getTime();
+    const limit = 6;
+    const parsed = parseNaturalLanguage(q);
+    const url = `/api/search_suggest?q=${encodeURIComponent(q)}&limit=${limit}&_t=${timestamp}`;
+    
+    try {
+      const res = await fetch(url, { 
+        signal: abortCtrl.signal,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+      const data = await res.json();
+      render(data.items || [], q);
+    } catch(e){ 
+      console.error('Search error:', e);
+    }
+  }
+
+  // Clear button functionality
+  clearBtn.addEventListener('click', function() {
+    input.value = '';
+    input.focus();
+    container.style.display = 'none';
+    clearBtn.style.display = 'none';
+  });
+
+  let debounce;
+  input.addEventListener('input', function(){
+    const q = this.value.trim();
+    clearTimeout(debounce);
+    
+    // Show/hide clear button
+    clearBtn.style.display = q.length > 0 ? 'block' : 'none';
+    
+    if (q.length < 2){
+      container.style.display = 'none';
+      container.innerHTML = '';
+      return;
+    }
+    debounce = setTimeout(() => fetchSuggest(q), 150);
+  });
+
+  input.addEventListener('focus', function(){
+    if (container.innerHTML.trim()) container.style.display = 'block';
+  });
+
+  input.addEventListener('blur', function(){
+    hideTimer = setTimeout(() => { container.style.display = 'none'; }, 150);
+  });
+
+  // Handle suggestion clicks
+  container.addEventListener('click', function(e){
+    const suggestion = e.target.closest('.search-suggestion-item');
+    if (suggestion) {
+      e.preventDefault();
+      const query = suggestion.dataset.query;
+      input.value = query;
+      input.focus();
+      fetchSuggest(query);
+    }
+  });
+
+  container.addEventListener('mousedown', function(e){
+    e.preventDefault();
+    if (hideTimer) clearTimeout(hideTimer);
+  });
+
+  // Save search history
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      const query = this.value.trim();
+      if (query && !searchHistory.includes(query)) {
+        searchHistory.unshift(query);
+        searchHistory = searchHistory.slice(0, 10); // Keep only 10 recent searches
+        localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+      }
+    }
+  });
+
+  // Responsive search suggest positioning
+  function updateSearchPosition() {
+    if (container.style.display === 'block') {
+      const rect = input.getBoundingClientRect();
+      container.style.left = rect.left + 'px';
+      container.style.top = (rect.bottom + 5) + 'px';
+      container.style.width = rect.width + 'px';
+    }
+  }
+
+  window.addEventListener('scroll', updateSearchPosition);
+  window.addEventListener('resize', updateSearchPosition);
+})();
+
+// Modern User Menu - Enhanced functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const userMenuBtn = document.getElementById('userMenuBtn');
+  const userMenuDropdown = document.getElementById('userMenuDropdown');
+  const chevronIcon = userMenuBtn?.querySelector('.fa-chevron-down');
+  
+  if (userMenuBtn && userMenuDropdown) {
+    // Toggle dropdown with smooth animations
+    userMenuBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const isOpen = userMenuDropdown.classList.contains('show');
+      
+      // Close all other dropdowns first
+      document.querySelectorAll('.user-menu-dropdown.show').forEach(function(menu) {
+        if (menu !== userMenuDropdown) {
+          menu.classList.remove('show');
+          const otherBtn = document.querySelector(`[aria-labelledby="${menu.id}"]`) || 
+                          document.querySelector(`button[aria-expanded="true"]`);
+          if (otherBtn) {
+            otherBtn.setAttribute('aria-expanded', 'false');
+            const otherChevron = otherBtn.querySelector('.fa-chevron-down');
+            if (otherChevron) otherChevron.style.transform = 'rotate(0deg)';
+          }
+        }
+      });
+      
+      // Toggle current dropdown
+      if (isOpen) {
+        userMenuDropdown.classList.remove('show');
+        userMenuBtn.setAttribute('aria-expanded', 'false');
+        if (chevronIcon) chevronIcon.style.transform = 'rotate(0deg)';
+      } else {
+        userMenuDropdown.classList.add('show');
+        userMenuBtn.setAttribute('aria-expanded', 'true');
+        if (chevronIcon) chevronIcon.style.transform = 'rotate(180deg)';
+      }
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!userMenuBtn.contains(e.target) && !userMenuDropdown.contains(e.target)) {
+        userMenuDropdown.classList.remove('show');
+        userMenuBtn.setAttribute('aria-expanded', 'false');
+        if (chevronIcon) chevronIcon.style.transform = 'rotate(0deg)';
+      }
+    });
+    
+    // Close dropdown when pressing Escape
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        userMenuDropdown.classList.remove('show');
+        userMenuBtn.setAttribute('aria-expanded', 'false');
+        if (chevronIcon) chevronIcon.style.transform = 'rotate(0deg)';
+      }
+    });
+    
+    // Enhanced keyboard navigation
+    userMenuBtn.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        userMenuBtn.click();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (!userMenuDropdown.classList.contains('show')) {
+          userMenuDropdown.classList.add('show');
+          userMenuBtn.setAttribute('aria-expanded', 'true');
+          if (chevronIcon) chevronIcon.style.transform = 'rotate(180deg)';
+        }
+        // Focus first menu item
+        const firstItem = userMenuDropdown.querySelector('.user-menu-item, .user-menu-logout');
+        if (firstItem) firstItem.focus();
+      }
+    });
+    
+    // Handle menu item navigation
+    const menuItems = userMenuDropdown.querySelectorAll('.user-menu-item, .user-menu-logout');
+    menuItems.forEach(function(item, index) {
+      item.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          const nextItem = menuItems[index + 1];
+          if (nextItem) nextItem.focus();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (index === 0) {
+            userMenuBtn.focus();
+          } else {
+            const prevItem = menuItems[index - 1];
+            if (prevItem) prevItem.focus();
+          }
+        } else if (e.key === 'Escape') {
+          userMenuBtn.focus();
+          userMenuDropdown.classList.remove('show');
+          userMenuBtn.setAttribute('aria-expanded', 'false');
+          if (chevronIcon) chevronIcon.style.transform = 'rotate(0deg)';
+        }
+      });
+      
+      // Close dropdown when clicking menu items
+      item.addEventListener('click', function() {
+        userMenuDropdown.classList.remove('show');
+        userMenuBtn.setAttribute('aria-expanded', 'false');
+        if (chevronIcon) chevronIcon.style.transform = 'rotate(0deg)';
+      });
+    });
+    
+    // Add ripple effect to menu items
+    menuItems.forEach(function(item) {
+      item.addEventListener('click', function(e) {
+        const ripple = document.createElement('span');
+        const rect = item.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        const x = e.clientX - rect.left - size / 2;
+        const y = e.clientY - rect.top - size / 2;
+        
+        ripple.style.cssText = `
+          position: absolute;
+          width: ${size}px;
+          height: ${size}px;
+          left: ${x}px;
+          top: ${y}px;
+          background: rgba(102, 126, 234, 0.3);
+          border-radius: 50%;
+          transform: scale(0);
+          animation: ripple 0.6s ease-out;
+          pointer-events: none;
+          z-index: 1;
+        `;
+        
+        item.style.position = 'relative';
+        item.style.overflow = 'hidden';
+        item.appendChild(ripple);
+        
+        setTimeout(() => {
+          ripple.remove();
+        }, 600);
+      });
+    });
+  }
+});
+
+// Micro-interactions và Haptic Feedback
+document.addEventListener('DOMContentLoaded', function() {
+  // Haptic feedback cho mobile
+  function triggerHaptic(type = 'light') {
+    if ('vibrate' in navigator) {
+      const patterns = {
+        light: [10],
+        medium: [20],
+        heavy: [30],
+        success: [10, 10, 10],
+        error: [50, 50, 50]
+      };
+      navigator.vibrate(patterns[type] || patterns.light);
+    }
+  }
+
+  // Enhanced button interactions
+  document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      // Add ripple effect
+      const ripple = document.createElement('span');
+      const rect = this.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      const x = e.clientX - rect.left - size / 2;
+      const y = e.clientY - rect.top - size / 2;
+      
+      ripple.style.cssText = `
+        position: absolute;
+        width: ${size}px;
+        height: ${size}px;
+        left: ${x}px;
+        top: ${y}px;
+        background: rgba(255,255,255,0.3);
+        border-radius: 50%;
+        transform: scale(0);
+        animation: ripple 0.6s ease-out;
+        pointer-events: none;
+      `;
+      
+      this.style.position = 'relative';
+      this.style.overflow = 'hidden';
+      this.appendChild(ripple);
+      
+      setTimeout(() => ripple.remove(), 600);
+      
+      // Haptic feedback
+      triggerHaptic('light');
+    });
+  });
+
+  // Enhanced card interactions
+  document.querySelectorAll('.card, .product-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-4px) scale(1.02)';
+      triggerHaptic('light');
+    });
+    
+    card.addEventListener('mouseleave', function() {
+      this.style.transform = '';
+    });
+  });
+
+  // Keyboard navigation detection
+  let isKeyboardUser = false;
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Tab') {
+      isKeyboardUser = true;
+      document.body.classList.add('keyboard-nav');
+    }
+  });
+  
+  document.addEventListener('mousedown', function() {
+    isKeyboardUser = false;
+    document.body.classList.remove('keyboard-nav');
+  });
+
+  // Skip link functionality
+  const skipLink = document.createElement('a');
+  skipLink.href = '#main-content';
+  skipLink.textContent = 'Bỏ qua đến nội dung chính';
+  skipLink.className = 'skip-link';
+  document.body.insertBefore(skipLink, document.body.firstChild);
+
+  // Add main content ID if not exists
+  const mainContent = document.querySelector('main, .main-content, .container');
+  if (mainContent && !mainContent.id) {
+    mainContent.id = 'main-content';
+  }
+
+  // Enhanced form interactions
+  document.querySelectorAll('.form-control, .form-select').forEach(input => {
+    input.addEventListener('focus', function() {
+      this.parentElement.classList.add('focused');
+      triggerHaptic('light');
+    });
+    
+    input.addEventListener('blur', function() {
+      this.parentElement.classList.remove('focused');
+    });
+  });
+
+  // Loading state management
+  function showLoading(element) {
+    element.classList.add('loading');
+    element.style.pointerEvents = 'none';
+  }
+  
+  function hideLoading(element) {
+    element.classList.remove('loading');
+    element.style.pointerEvents = 'auto';
+  }
+
+  // Enhanced link interactions
+  document.querySelectorAll('a[href]').forEach(link => {
+    link.addEventListener('click', function(e) {
+      // Add loading state for internal links
+      if (this.hostname === window.location.hostname && !this.target) {
+        showLoading(this);
+        triggerHaptic('medium');
+      }
+    });
+  });
+
+  // Success/Error feedback
+  window.showSuccess = function(message) {
+    triggerHaptic('success');
+    // You can integrate with your existing toast system
+    console.log('Success:', message);
+  };
+  
+  window.showError = function(message) {
+    triggerHaptic('error');
+    console.log('Error:', message);
+  };
+});
+
+// Add ripple animation CSS
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes ripple {
+    to {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+  
+  .focused .form-control,
+  .focused .form-select {
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+`;
+document.head.appendChild(style);
+
+// Smooth animations cho các elements
+document.addEventListener('DOMContentLoaded', function() {
+  // Animate elements khi load trang
+  const animateElements = document.querySelectorAll('.animate-fade-in-up, .animate-fade-in, .animate-slide-in-right');
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, {
+    threshold: 0.1
+  });
+  
+  animateElements.forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
+  });
+
+  // Reveal on scroll - IntersectionObserver cho lớp .reveal
+  const revealEls = document.querySelectorAll('.reveal,[data-reveal]');
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        // Chỉ reveal một lần để tối ưu
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -10% 0px' });
+
+  revealEls.forEach(el => revealObserver.observe(el));
+});
+
+// Cache management
+window.addEventListener('beforeunload', function() {
+  if (typeof(Storage) !== "undefined") {
+    console.log('Clearing cache before navigation...');
+  }
+});
+
+window.addEventListener('load', function() {
+  if (typeof(Storage) !== "undefined") {
+    console.log('Page loaded, cache cleared');
+  }
+});
+
+// Page transitions - intercept link clicks để animate trước khi điều hướng
+document.addEventListener('DOMContentLoaded', function() {
+  const overlay = document.getElementById('pageTransition');
+  if (!overlay) return;
+
+  // Đảm bảo overlay bị ẩn khi trang load
+  overlay.classList.remove('active');
+  overlay.setAttribute('aria-hidden', 'true');
+
+  function startTransition(url) {
+    overlay.classList.add('active');
+    // Announce for accessibility
+    overlay.setAttribute('aria-hidden', 'false');
+    setTimeout(() => {
+      window.location.href = url;
+    }, 300);
+  }
+
+  // Intercept tất cả link nội bộ
+  document.body.addEventListener('click', function(e) {
+    const a = e.target.closest('a');
+    if (!a) return;
+    const url = a.getAttribute('href');
+    const target = a.getAttribute('target');
+
+    // Bỏ qua nếu có modifier keys, anchor hash, external, hoặc mở tab mới
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (!url || url.startsWith('#')) return;
+    if (target === '_blank') return;
+    // Bỏ qua nếu là link tới khác origin
+    const isExternal = a.host && a.host !== window.location.host;
+    if (isExternal) return;
+
+    // Bỏ qua các action trong dropdown, modal, hoặc JS handlers explicit
+    if (a.hasAttribute('data-bs-toggle')) return;
+
+    // Cho phép form submit bình thường
+    if (a.closest('form')) return;
+
+    // Prevent default và animate
+    e.preventDefault();
+    startTransition(url);
+  }, true);
+
+  // Xử lý khi user bấm back/forward của trình duyệt
+  window.addEventListener('pageshow', function(event) {
+    // Đảm bảo overlay bị ẩn khi trang được hiển thị (bao gồm cả back/forward)
+    overlay.classList.remove('active');
+    overlay.setAttribute('aria-hidden', 'true');
+  });
+
+  // Xử lý khi trang được unload (bao gồm cả back/forward)
+  window.addEventListener('pagehide', function(event) {
+    // Không cần làm gì đặc biệt ở đây
+  });
+});
+</script>
+
+<!-- Additional CSS for new features -->
+<style>
+/* Navbar improvements */
+.user-avatar {
+  margin-right: 0.5rem;
+  font-size: 1.2em;
+}
+
+.user-name {
+  font-weight: 600;
+}
+
+/* Search form improvements */
+.search-form {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.search-input {
+  border-radius: 25px;
+  border: 2px solid var(--border);
+  padding: 0.75rem 1rem;
+  min-width: 250px;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  outline: none;
+}
+
+.search-btn {
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.search-btn:hover {
+  transform: scale(1.05);
+}
+
+.search-icon {
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .search-input {
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 576px) {
+  .search-input {
+    min-width: 150px;
+  }
+}
+
+/* Search suggest improvements */
+.search-item {
+  transition: all 0.2s ease;
+}
+
+.search-item:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(240, 147, 251, 0.05) 100%);
+  transform: translateX(4px);
+}
+
+.search-item-title {
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.search-item-price {
+  color: var(--primary-600);
+  font-weight: 500;
+}
+
+.search-item-arrow {
+  color: var(--text-muted);
+  font-weight: bold;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.search-item:hover .search-item-arrow {
+  opacity: 1;
+  transform: translateX(4px);
+}
+
+.search-no-results {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* Advanced Search Styles */
+.search-input-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.search-clear-btn:hover {
+  background: rgba(0,0,0,0.1);
+  color: var(--text-strong);
+}
+
+.search-suggestion-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.search-suggestion-item:hover {
+  background: rgba(102, 126, 234, 0.1);
+  color: var(--primary-600);
+}
+
+/* Toast Notification Styles */
+.flash-messages {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  max-width: 400px;
+}
+
+.toast-notification {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  margin-bottom: 15px;
+  overflow: hidden;
+  position: relative;
+  border-left: 4px solid;
+  animation: slideInRight 0.4s ease-out;
+}
+
+.toast-success {
+  border-left-color: #28a745;
+}
+
+.toast-danger {
+  border-left-color: #dc3545;
+}
+
+.toast-warning {
+  border-left-color: #ffc107;
+}
+
+.toast-info {
+  border-left-color: #17a2b8;
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  position: relative;
+}
+
+.toast-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  font-size: 18px;
+}
+
+.toast-success .toast-icon {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+}
+
+.toast-danger .toast-icon {
+  background: linear-gradient(135deg, #dc3545, #e74c3c);
+  color: white;
+}
+
+.toast-warning .toast-icon {
+  background: linear-gradient(135deg, #ffc107, #f39c12);
+  color: white;
+}
+
+.toast-info .toast-icon {
+  background: linear-gradient(135deg, #17a2b8, #3498db);
+  color: white;
+}
+
+.toast-body {
+  flex: 1;
+}
+
+.toast-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: #2c3e50;
+}
+
+.toast-message {
+  font-size: 13px;
+  color: #6c757d;
+  line-height: 1.4;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: #adb5bd;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.toast-close:hover {
+  background: #f8f9fa;
+  color: #6c757d;
+}
+
+.toast-progress {
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+  animation: progressBar 4s linear forwards;
+}
+
+.toast-success .toast-progress {
+  background: linear-gradient(90deg, #28a745, #20c997);
+}
+
+.toast-danger .toast-progress {
+  background: linear-gradient(90deg, #dc3545, #e74c3c);
+}
+
+.toast-warning .toast-progress {
+  background: linear-gradient(90deg, #ffc107, #f39c12);
+}
+
+.toast-info .toast-progress {
+  background: linear-gradient(90deg, #17a2b8, #3498db);
+}
+
+/* Animations */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes progressBar {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.4s ease-out;
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Back to top button */
+.back-to-top {
+  position: fixed;
+  bottom: 20px; /* Same bottom as chatbot */
+  right: 80px; /* Move left to be next to chatbot */
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 999;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.back-to-top.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.back-to-top.show.with-compare {
+  bottom: 100px;
+}
+
+.back-to-top:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+@keyframes floaty {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
+}
+
+/* Footer */
+.footer {
+  background: var(--gradient-card);
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+}
+
+/* Dropdown improvements */
+.dropdown-menu {
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  padding: 0.5rem;
+  z-index: 1050;
+  min-width: 200px;
+  background: white;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+}
+
+.dropdown-menu.show {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) !important;
+}
+
+/* Bootstrap dropdown compatibility */
+.dropdown-menu[data-bs-popper] {
+  top: 100%;
+  left: auto;
+  right: 0;
+}
+
+.dropdown-item {
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  transition: all 0.2s ease;
+  color: var(--text-strong);
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-item:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(240, 147, 251, 0.05) 100%);
+  transform: translateX(4px);
+  color: var(--primary-600);
+}
+
+.dropdown-item i {
+  width: 16px;
+  text-align: center;
+}
+
+/* User menu specific styles */
+.user-menu {
+  color: var(--text-strong) !important;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.user-menu:hover {
+  background: rgba(102, 126, 234, 0.1);
+  color: var(--primary-600) !important;
+}
+
+.user-menu:focus {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  outline: none;
+}
+
+/* Ensure dropdown container has proper positioning */
+.nav-item.dropdown {
+  position: relative;
+}
+
+
+/* Button improvements */
+.btn-icon {
+  margin-right: 0.5rem;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .flash-messages {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+  
+  .toast-notification {
+    margin-bottom: 10px;
+  }
+  
+  .toast-content {
+    padding: 12px;
+  }
+  
+  .toast-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 16px;
+  }
+  
+  .toast-title {
+    font-size: 13px;
+  }
+  
+  .toast-message {
+    font-size: 12px;
+  }
+  
+  .back-to-top {
+    bottom: 20px;
+    right: 70px; /* Move left to be next to chatbot on mobile */
+    width: 45px;
+    height: 45px;
+  }
+}
+
+/* Chatbot Widget Styles */
+.chatbot-widget {
+  position: fixed;
+  bottom: 20px; /* Same bottom as back to top button */
+  right: 20px;
+  z-index: 999;
+  font-family: 'Inter', sans-serif;
+}
+
+.chatbot-widget.with-compare {
+  bottom: 100px;
+}
+
+.chat-toggle-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: floaty 3s ease-in-out infinite;
+}
+
+.chat-toggle-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: var(--shadow-xl);
+}
+
+.chat-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #ff4757;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 2s infinite;
+}
+
+.chat-window {
+  position: absolute;
+  bottom: 80px; /* Above both buttons */
+  right: 0;
+  width: 350px;
+  height: 500px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: var(--shadow-xl);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideInUp 0.3s ease-out;
+}
+
+.chat-header {
+  background: var(--gradient-primary);
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-title {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.chat-close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  transition: background 0.2s ease;
+}
+
+.chat-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.message {
+  display: flex;
+  gap: 10px;
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.message-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.bot-message .message-avatar {
+  background: var(--gradient-primary);
+  color: white;
+}
+
+.user-message {
+  flex-direction: row-reverse;
+}
+
+.user-message .message-avatar {
+  background: #e9ecef;
+  color: #6c757d;
+}
+
+.message-content {
+  max-width: 80%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.message-text {
+  background: #f8f9fa;
+  padding: 12px 16px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.6;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+.message-text strong {
+  font-weight: 600;
+  color: var(--primary-600);
+}
+
+.message-text em {
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.user-message .message-text {
+  background: var(--gradient-primary);
+  color: white;
+}
+
+.message-time {
+  font-size: 11px;
+  color: #6c757d;
+  text-align: right;
+}
+
+.user-message .message-time {
+  text-align: left;
+}
+
+.chat-input-container {
+  padding: 15px 20px;
+  border-top: 1px solid #e9ecef;
+  background: white;
+}
+
+.chat-input-wrapper {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.chat-input {
+  flex: 1;
+  border: 2px solid #e9ecef;
+  border-radius: 25px;
+  padding: 10px 15px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.chat-input:focus {
+  border-color: var(--primary-500);
+}
+
+.chat-send-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.chat-send-btn:hover {
+  transform: scale(1.05);
+}
+
+.chat-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.chat-suggestions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.suggestion-btn {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 15px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #6c757d;
+}
+
+.suggestion-btn:hover {
+  background: var(--primary-500);
+  color: white;
+  border-color: var(--primary-500);
+}
+
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-radius: 18px;
+  max-width: 80px;
+}
+
+.typing-dots {
+  display: flex;
+  gap: 3px;
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  background: #6c757d;
+  border-radius: 50%;
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes typing {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .chatbot-widget {
+    bottom: 15px;
+    right: 15px;
+  }
+  
+  .chat-window {
+    width: 320px;
+    height: 450px;
+    bottom: 75px;
+  }
+  
+  .chat-toggle-btn {
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-window {
+    width: calc(100vw - 30px);
+    right: -15px;
+    height: 400px;
+  }
+  
+  .chat-messages {
+    padding: 15px;
+  }
+  
+  .chat-input-container {
+    padding: 12px 15px;
+  }
+}
+</style>
+
+<!-- Chatbot JavaScript -->
+<script>
+// Chatbot functionality
+let chatOpen = false;
+let isTyping = false;
+
+// Toggle chat window
+function toggleChat() {
+    const chatWindow = document.getElementById('chatWindow');
+    const chatToggleBtn = document.getElementById('chatToggleBtn');
+    const chatBadge = document.getElementById('chatBadge');
+    
+    chatOpen = !chatOpen;
+    
+    if (chatOpen) {
+        chatWindow.style.display = 'flex';
+        chatToggleBtn.innerHTML = '<i class="fas fa-times"></i>';
+        chatBadge.style.display = 'none';
+        
+        // Focus on input
+        setTimeout(() => {
+            document.getElementById('chatInput').focus();
+        }, 100);
+        
+        // Back to top button is now positioned next to chatbot, no need to adjust
+    } else {
+        chatWindow.style.display = 'none';
+        chatToggleBtn.innerHTML = '<i class="fas fa-robot"></i>';
+    }
+}
+
+// Send message
+async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    
+    if (!message || isTyping) return;
+    
+    // Add user message
+    addMessage(message, 'user');
+    
+    // Clear input and reset height
+    input.value = '';
+    input.style.height = 'auto';
+    
+    // Show typing indicator
+    showTypingIndicator();
+    
+    try {
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message: message })
+        });
+        
+        const data = await response.json();
+        
+        // Hide typing indicator
+        hideTypingIndicator();
+        
+        if (data.success) {
+            // Decode Unicode characters for proper Vietnamese display
+            const decodedResponse = data.response
+                .replace(/\\u([0-9a-fA-F]{4})/g, (match, code) => String.fromCharCode(parseInt(code, 16)))
+                .replace(/\\n/g, '\n')
+                .replace(/\\"/g, '"');
+            
+            addMessage(decodedResponse, 'bot');
+            
+            // Show product cards if we have laptop recommendations
+            if (data.relevant_laptops && data.relevant_laptops.length > 0 && data.intent === 'recommend') {
+                showProductRecommendations(data.relevant_laptops);
+            }
+        } else {
+            addMessage('Xin lỗi, có lỗi xảy ra. Vui lòng thử lại.', 'bot');
+        }
+    } catch (error) {
+        console.error('Chat error:', error);
+        hideTypingIndicator();
+        addMessage('Xin lỗi, không thể kết nối đến AI. Vui lòng thử lại.', 'bot');
+    }
+}
+
+// Send suggestion
+function sendSuggestion(suggestion) {
+    const input = document.getElementById('chatInput');
+    input.value = suggestion;
+    input.style.height = 'auto';
+    sendMessage();
+}
+
+// Add message to chat
+function addMessage(text, sender) {
+    const messagesContainer = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}-message`;
+    
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('vi-VN', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+    
+    // Format text for better display with proper line breaks
+    const formattedText = text
+        .replace(/\n\n/g, '<br><br>')  // Double line breaks
+        .replace(/\n/g, '<br>')        // Single line breaks
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/•/g, '•')
+        .replace(/→/g, '→')
+        .replace(/([.!?])\s+/g, '$1<br>')  // Add line breaks after sentences
+        .replace(/(\d+\.\s)/g, '<br>$1');  // Add line breaks before numbered lists
+    
+    messageDiv.innerHTML = `
+        <div class="message-avatar">
+            <i class="fas fa-${sender === 'bot' ? 'robot' : 'user'}"></i>
+        </div>
+        <div class="message-content">
+            <div class="message-text">${formattedText}</div>
+            <div class="message-time">${timeString}</div>
+        </div>
+    `;
+    
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Show typing indicator
+function showTypingIndicator() {
+    isTyping = true;
+    const messagesContainer = document.getElementById('chatMessages');
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'message bot-message';
+    typingDiv.id = 'typingIndicator';
+    
+    typingDiv.innerHTML = `
+        <div class="message-avatar">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div class="message-content">
+            <div class="typing-indicator">
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    messagesContainer.appendChild(typingDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Hide typing indicator
+function hideTypingIndicator() {
+    isTyping = false;
+    const typingIndicator = document.getElementById('typingIndicator');
+    if (typingIndicator) {
+        typingIndicator.remove();
+    }
+}
+
+// Clear chat history
+async function clearChat() {
+    try {
+        const response = await fetch('/api/chat/clear', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Clear messages container except welcome message
+            const messagesContainer = document.getElementById('chatMessages');
+            const welcomeMessage = messagesContainer.querySelector('.message.bot-message');
+            
+            // Clear all messages
+            messagesContainer.innerHTML = '';
+            
+            // Add back welcome message
+            messagesContainer.appendChild(welcomeMessage);
+            
+            // Show success message
+            addMessage('Đã xóa lịch sử trò chuyện. Bạn có thể bắt đầu cuộc trò chuyện mới!', 'bot');
+        } else {
+            addMessage('Có lỗi xảy ra khi xóa lịch sử.', 'bot');
+        }
+    } catch (error) {
+        console.error('Clear chat error:', error);
+        addMessage('Có lỗi xảy ra khi xóa lịch sử.', 'bot');
+    }
+}
+
+// Show product recommendations
+function showProductRecommendations(laptops) {
+    const messagesContainer = document.getElementById('chatMessages');
+    
+    // Create product recommendations container
+    const recommendationsDiv = document.createElement('div');
+    recommendationsDiv.className = 'message bot-message product-recommendations';
+    
+    let recommendationsHTML = `
+        <div class="message-avatar">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div class="message-content">
+            <div class="message-text">
+                <strong>💻 Laptop được gợi ý:</strong>
+            </div>
+            <div class="product-cards">
+    `;
+    
+    laptops.slice(0, 3).forEach(laptop => {
+        // Validate laptop has required fields
+        if (!laptop.id || !laptop.name || !laptop.price || !laptop.cpu) {
+            return; // Skip invalid laptops
+        }
+        
+        const priceFormatted = laptop.price.toLocaleString('vi-VN');
+        recommendationsHTML += `
+            <div class="product-card" onclick="window.open('/laptop/${laptop.id}', '_blank')">
+                <div class="product-image">
+                    <img src="${laptop.image_url || '/static/images/aceraspire3.webp'}" 
+                         alt="${laptop.name}" 
+                         onerror="this.src='/static/images/aceraspire3.webp'">
+                </div>
+                <div class="product-info">
+                    <h6 class="product-name">${laptop.name}</h6>
+                    <div class="product-specs">
+                        <small>${laptop.cpu} • ${laptop.ram_gb}GB RAM</small>
+                        ${laptop.gpu ? `<br><small>${laptop.gpu}</small>` : ''}
+                    </div>
+                    <div class="product-price">${priceFormatted} VND</div>
+                </div>
+            </div>
+        `;
+    });
+    
+    recommendationsHTML += `
+            </div>
+            <div class="message-time">Vừa xong</div>
+        </div>
+    `;
+    
+    recommendationsDiv.innerHTML = recommendationsHTML;
+    messagesContainer.appendChild(recommendationsDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Back to top button is now positioned next to chatbot, no need to adjust position
+
+// Handle Enter key in chat input
+document.addEventListener('DOMContentLoaded', function() {
+    const chatInput = document.getElementById('chatInput');
+    if (chatInput) {
+        chatInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+            // Allow Shift+Enter for new line
+        });
+        
+        // Auto-resize textarea based on content
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+    }
+    
+    // Show welcome message after 3 seconds
+    setTimeout(() => {
+        const chatBadge = document.getElementById('chatBadge');
+        if (chatBadge && !chatOpen) {
+            chatBadge.style.display = 'flex';
+        }
+    }, 3000);
+});
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>
